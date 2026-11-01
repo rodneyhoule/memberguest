@@ -1,8 +1,10 @@
 (function () {
   "use strict";
 
-  const API_URL = (window.MMG_CONFIG && window.MMG_CONFIG.apiUrl) || "";
-  const DEMO = !API_URL;
+  const CFG = window.MMG_CONFIG || {};
+  const SUPABASE_URL = (CFG.supabaseUrl || "").replace(/\/+$/, "");
+  const SUPABASE_KEY = CFG.supabaseKey || "";
+  const DEMO = !SUPABASE_URL || !SUPABASE_KEY;
 
   const state = {
     config: null,
@@ -17,24 +19,51 @@
 
   // ---------- Backend ----------
 
-  // Real backend: Google Apps Script web app. POST uses text/plain so the
-  // browser skips the CORS preflight that Apps Script can't answer.
+  // Real backend: Supabase database functions (see supabase/schema.sql),
+  // called through the REST API with the public key.
+  async function rpc(fn, args) {
+    const res = await fetch(SUPABASE_URL + "/rest/v1/rpc/" + fn, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", apikey: SUPABASE_KEY },
+      body: JSON.stringify(args || {})
+    });
+    const body = await res.json().catch(() => null);
+    if (!res.ok) throw new Error((body && body.message) || "Something went wrong.");
+    return body;
+  }
+
   const remoteApi = {
     async list() {
-      const res = await fetch(API_URL + "?action=list");
-      return res.json();
+      return { ok: true, filled: await rpc("list_filled") };
     },
-    async call(payload) {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      });
-      return res.json();
+    async call(p) {
+      try {
+        if (p.action === "signup") {
+          const r = await rpc("signup", {
+            p_first: p.firstName, p_last: p.lastName, p_email: p.email, p_phone: p.phone,
+            p_agreed: p.agreed, p_shift_ids: p.shiftIds
+          });
+          return Object.assign({ ok: true }, r);
+        }
+        if (p.action === "mine") {
+          const r = await rpc("my_shifts", { p_token: p.token });
+          return r ? Object.assign({ ok: true }, r) : { ok: false, error: "We couldn't find that sign-up link." };
+        }
+        if (p.action === "cancel") {
+          await rpc("cancel_shift", { p_token: p.token, p_shift_id: p.shiftId });
+          return { ok: true };
+        }
+        if (p.action === "find") {
+          return { ok: true, token: await rpc("find_link", { p_email: p.email, p_phone: p.phone }) };
+        }
+        return { ok: false, error: "Unknown action" };
+      } catch (ex) {
+        return { ok: false, error: ex.message };
+      }
     }
   };
 
-  // Demo backend: same responses as the Apps Script, stored in localStorage.
+  // Demo backend: same responses as the real one, stored in localStorage.
   const demoApi = (function () {
     const KEY = "mmg-demo-signups";
     const load = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } };
@@ -83,10 +112,10 @@
           save(rows);
           return { ok: true };
         }
-        if (p.action === "resend") {
-          const row = rows.find((r) => r.email === p.email.trim().toLowerCase());
-          // Real backend emails the link; in demo mode just show it.
-          return { ok: true, demoLink: row ? manageUrl(row.token) : null };
+        if (p.action === "find") {
+          const digits = (s) => s.replace(/\D/g, "");
+          const row = rows.find((r) => r.email === p.email.trim().toLowerCase() && digits(r.phone) === digits(p.phone));
+          return { ok: true, token: row ? row.token : null };
         }
         return { ok: false, error: "Unknown action" };
       }
@@ -330,19 +359,17 @@
   async function submitFind(e) {
     e.preventDefault();
     const email = e.target.email.value.trim();
+    const phone = e.target.phone.value.trim();
     const err = $("#find-error");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = "Please enter a valid email address."; err.hidden = false; return; }
+    const fail = (msg) => { err.textContent = msg; err.hidden = false; };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail("Please enter a valid email address.");
+    if (phone.replace(/\D/g, "").length < 10) return fail("Please enter the phone number you signed up with.");
     err.hidden = true;
-    const res = await api.call({ action: "resend", email });
-    const done = $("#find-done");
-    done.hidden = false;
-    if (DEMO) {
-      done.replaceChildren(res.demoLink
-        ? el("span", {}, "Demo mode — your link: ", el("a", { href: res.demoLink }, res.demoLink))
-        : "Demo mode — no sign-ups found for that email.");
-    } else {
-      done.textContent = "If that email has signed up, a link is on its way. Check your inbox (and spam folder).";
-    }
+    const res = await api.call({ action: "find", email, phone });
+    if (!res.ok) return fail(res.error + " Please try again.");
+    if (!res.token) return fail("We couldn't find a sign-up with that email and phone number.");
+    history.replaceState(null, "", "?manage=" + encodeURIComponent(res.token));
+    openManage(res.token);
   }
 
   // ---------- Startup ----------

@@ -1,8 +1,9 @@
 # Member/Guest Volunteer Sign-Up
 
-A simple, phone-friendly page where volunteers pick their own shifts. The page is hosted
-free on GitHub Pages, and sign-ups are saved to a Google Sheet that the coordinators can open,
-edit and print.
+A simple, phone-friendly page where volunteers pick their own shifts.
+The page is hosted free on GitHub Pages; sign-ups are stored in a free Supabase database.
+
+Live site: https://rodneyhoule.github.io/memberguest/
 
 > This site is member-run. It is not an official Awbrey Glen Golf Club website.
 
@@ -11,9 +12,12 @@ edit and print.
 | File | What it is |
 |---|---|
 | `shifts.json` | **Edit this each year.** Event dates, days, roles, shift times, number of spots, disclaimer wording, contacts. |
-| `config.js` | The Google Apps Script URL. Leave it empty for demo mode. |
+| `config.js` | Supabase project URL and public key. Leave empty for demo mode. |
 | `index.html`, `styles.css`, `app.js` | The sign-up page. |
-| `apps-script/Code.gs` | The backend code that goes in the Google Sheet. |
+| `supabase/schema.sql` | Database tables and functions. Run once in Supabase. |
+| `supabase/seed.sql` | The shift list for the database, generated from `shifts.json`. |
+| `scripts/make_seed.py` | Regenerates `supabase/seed.sql`. |
+| `.github/workflows/keepalive.yml` | Daily ping so Supabase doesn't pause the free project. |
 
 ## Try it locally (demo mode)
 
@@ -23,44 +27,42 @@ cd ~/memberguest && python3 -m http.server 8000
 
 Open http://localhost:8000. With `config.js` empty, sign-ups are saved only in your browser.
 
-## Going live
+## Setting up Supabase
 
-### 1. Put the site on GitHub Pages
-1. Create a GitHub repository (for example `memberguest`) and push these files to it.
-2. Go to the repo's **Settings → Pages**, set **Source** to "Deploy from a branch", choose `main` / root, and save.
-3. Your site will be at `https://YOURNAME.github.io/memberguest/`.
+1. Create a free project at https://supabase.com. Any region in the US West works; save the database password somewhere safe.
+2. In the project, open **SQL Editor → New query**, paste all of `supabase/schema.sql`, and click **Run**.
+3. Open another new query, paste `supabase/seed.sql`, and click **Run**. This loads the 42 shifts.
+4. Go to **Project Settings → API** (or **API Keys**) and copy:
+   - the **Project URL** (`https://xxxx.supabase.co`)
+   - the **publishable** key (or the legacy **anon public** key). Never use the secret / service_role key.
+5. Put both into `config.js`, then commit and push. The "Demo mode" banner disappears.
 
-### 2. Create the Google Sheet backend
-1. Create a new Google Sheet (for example "MMG Volunteers") using the Google account that should
-   send the confirmation emails.
-2. Go to **Extensions → Apps Script**, delete the sample code and paste in `apps-script/Code.gs`.
-3. Change `SITE_URL` at the top to your GitHub Pages address (keep the trailing `/`).
-4. Click **Deploy → New deployment → Web app**:
-   - Execute as: **Me**
-   - Who has access: **Anyone**
-5. Approve the permissions (Sheets, sending email, fetching the shift list).
-6. Copy the web app URL (it ends in `/exec`).
+The public key is safe to publish. The tables are locked, and the key can only call the sign-up
+functions, which never return emails or phone numbers.
 
-### 3. Connect them
-Paste the `/exec` URL into `config.js`, then commit and push. The "Demo mode" banner disappears.
+## Keeping the database awake
 
-### 4. Test before announcing
-Sign up from your phone with a test name, check the email and the "change my shifts" link, and cancel a shift.
-Then delete the test rows from the **Signups** tab.
+Supabase pauses free projects after about 7 days without activity. The **Keep Supabase awake**
+GitHub Action runs every day and makes one small read query. It also re-enables itself, because
+GitHub turns off scheduled workflows in repositories with no activity for 60 days.
+
+To check it: the repo's **Actions** tab → **Keep Supabase awake** → **Run workflow**.
+GitHub emails you if a run fails.
 
 ## For the coordinator
 
-- **Signups tab:** one row per person per shift. Cancelled shifts stay in the sheet marked `Cancelled`.
-  To move someone, change the Shift ID or Status in the sheet.
-- **Volunteers → Build printable roster** (menu in the Sheet): creates a **Roster** tab laid out like
-  the old printed list, with names and phone numbers and "OPEN" for empty spots.
-- **Changing shifts:** edit `shifts.json` and push. The backend picks up changes within 10 minutes.
-  Don't rename a shift `id` once people have signed up for it.
-- **Updating Code.gs:** after editing, use **Deploy → Manage deployments → Edit → New version** so the
-  URL stays the same.
+- **See who signed up:** Supabase dashboard → **Table Editor** → `roster` (active sign-ups with
+  names, phone numbers and emails). Use **Export → CSV** to print or share it.
+- **All history:** the `signups` table. Cancelled shifts stay with status `cancelled`.
+- **Remove or move someone:** edit their row in `signups` (set `status` to `cancelled`, or change `shift_id`).
+
+## Changing the shifts
+
+1. Edit `shifts.json` (times, spots, new roles). Don't rename a shift `id` once people have signed up for it.
+2. Run `python3 scripts/make_seed.py > supabase/seed.sql`, then run `seed.sql` in the Supabase SQL Editor.
+3. Commit and push.
 
 ## Privacy
 
-The public page shows first name and last initial only. Emails and phone numbers are stored only in
-the Google Sheet. Coordinator phone numbers appear on the page only if they're added to `contacts`
-in `shifts.json`.
+The public page shows first name and last initial only. Emails and phone numbers are visible only in
+the Supabase dashboard. "Look up my shifts" needs both the email and the phone number used to sign up.
