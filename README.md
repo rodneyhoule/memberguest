@@ -65,4 +65,4 @@ GitHub emails you if a run fails.
 ## Privacy
 
 The public page shows first name and last initial only. Emails and phone numbers are visible only in
-the Supabase dashboard. "Look up my shifts" needs both the email and the phone number used to sign up.
+the Supabase dashboard. "Look up my shifts" works with either the email or the phone number used to sign up, so anyone who knows one of those can see and cancel that person's shifts. Cancelled rows stay in the database and can be restored.

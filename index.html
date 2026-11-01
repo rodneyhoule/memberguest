@@ -79,7 +79,7 @@
         <h2 id="done-title">You're signed up — thank you!</h2>
         <ul class="picked-list" id="done-list"></ul>
         <div id="done-full" class="warning" hidden></div>
-        <p>Need to make a change later? Bookmark or save this link. You can also use "Look up or change my shifts" on the main page with your email and phone number.</p>
+        <p>Need to make a change later? Bookmark or save this link. You can also use "Look up or change my shifts" on the main page with your email or phone number.</p>
         <p class="manage-link"><a id="done-link" href="#"></a></p>
         <button type="button" class="btn" id="btn-copy">Copy link</button>
       </div>
@@ -98,13 +98,10 @@
     <section id="view-find" hidden>
       <button type="button" class="link back" data-go="browse">← Back to shifts</button>
       <h2>Look up my shifts</h2>
-      <p>Enter the email and cell phone number you signed up with.</p>
+      <p>Enter the email <strong>or</strong> the cell phone number you signed up with.</p>
       <form id="find-form" novalidate>
-        <label>Email
-          <input name="email" type="email" autocomplete="email" required>
-        </label>
-        <label>Cell phone
-          <input name="phone" type="tel" autocomplete="tel" required>
+        <label>Email or cell phone
+          <input name="contact" autocomplete="email" autocapitalize="off" autocorrect="off" spellcheck="false" required>
         </label>
         <p class="error" id="find-error" role="alert" hidden></p>
         <button type="submit" class="btn primary big">Show my shifts</button>

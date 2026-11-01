@@ -54,7 +54,7 @@
           return { ok: true };
         }
         if (p.action === "find") {
-          return { ok: true, token: await rpc("find_link", { p_email: p.email, p_phone: p.phone }) };
+          return { ok: true, token: await rpc("find_link", { p_contact: p.contact }) };
         }
         return { ok: false, error: "Unknown action" };
       } catch (ex) {
@@ -113,8 +113,10 @@
           return { ok: true };
         }
         if (p.action === "find") {
-          const digits = (s) => s.replace(/\D/g, "");
-          const row = rows.find((r) => r.email === p.email.trim().toLowerCase() && digits(r.phone) === digits(p.phone));
+          const last10 = (s) => s.replace(/\D/g, "").slice(-10);
+          const row = p.contact.includes("@")
+            ? rows.find((r) => r.email === p.contact.trim().toLowerCase())
+            : rows.find((r) => last10(r.phone) === last10(p.contact));
           return { ok: true, token: row ? row.token : null };
         }
         return { ok: false, error: "Unknown action" };
@@ -358,16 +360,18 @@
 
   async function submitFind(e) {
     e.preventDefault();
-    const email = e.target.email.value.trim();
-    const phone = e.target.phone.value.trim();
+    const contact = e.target.contact.value.trim();
     const err = $("#find-error");
     const fail = (msg) => { err.textContent = msg; err.hidden = false; };
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail("Please enter a valid email address.");
-    if (phone.replace(/\D/g, "").length < 10) return fail("Please enter the phone number you signed up with.");
+    if (contact.includes("@")
+        ? !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)
+        : contact.replace(/\D/g, "").length < 10) {
+      return fail("Please enter your email address or 10-digit cell phone number.");
+    }
     err.hidden = true;
-    const res = await api.call({ action: "find", email, phone });
+    const res = await api.call({ action: "find", contact });
     if (!res.ok) return fail(res.error + " Please try again.");
-    if (!res.token) return fail("We couldn't find a sign-up with that email and phone number.");
+    if (!res.token) return fail("We couldn't find a sign-up with that " + (contact.includes("@") ? "email." : "phone number."));
     history.replaceState(null, "", "?manage=" + encodeURIComponent(res.token));
     openManage(res.token);
   }

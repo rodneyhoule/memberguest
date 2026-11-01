@@ -141,22 +141,27 @@ as $$
   select count(*) > 0 from c;
 $$;
 
--- "Look up my shifts": email plus the full phone number must match.
-create or replace function public.find_link(p_email text, p_phone text)
+-- "Look up my shifts": the email or the phone number used to sign up.
+-- Phones compare on the last 10 digits, so "+1 (541) 555-0100" matches "5415550100".
+drop function if exists public.find_link(text, text);
+create or replace function public.find_link(p_contact text)
 returns text
 language sql stable security definer set search_path = public
 as $$
   select token from signups
-  where email = lower(trim(p_email))
-    and regexp_replace(phone, '\D', '', 'g') = regexp_replace(coalesce(p_phone, ''), '\D', '', 'g')
+  where case
+    when position('@' in coalesce(p_contact, '')) > 0 then email = lower(trim(p_contact))
+    else length(regexp_replace(coalesce(p_contact, ''), '\D', '', 'g')) >= 10
+     and right(regexp_replace(phone, '\D', '', 'g'), 10) = right(regexp_replace(p_contact, '\D', '', 'g'), 10)
+  end
   order by created_at
   limit 1;
 $$;
 
 revoke execute on function public.list_filled(), public.signup(text, text, text, text, boolean, text[]),
-  public.my_shifts(text), public.cancel_shift(text, text), public.find_link(text, text) from public;
+  public.my_shifts(text), public.cancel_shift(text, text), public.find_link(text) from public;
 grant execute on function public.list_filled(), public.signup(text, text, text, text, boolean, text[]),
-  public.my_shifts(text), public.cancel_shift(text, text), public.find_link(text, text) to anon, authenticated;
+  public.my_shifts(text), public.cancel_shift(text, text), public.find_link(text) to anon, authenticated;
 
 -- Coordinator roster (Supabase dashboard → Table Editor → roster, or export as CSV).
 create or replace view public.roster with (security_invoker = true) as
