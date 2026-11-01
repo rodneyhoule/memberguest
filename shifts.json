@@ -1,0 +1,97 @@
+{
+  "event": {
+    "title": "Men's Member/Guest Tournament",
+    "subtitle": "Volunteer Sign-Up",
+    "dates": "July 2027 — dates to be announced"
+  },
+  "disclaimer": "This volunteer sign-up page is run by members of the tournament committee. It is not an official Awbrey Glen Golf Club website and is not operated or endorsed by the club.",
+  "agreement": "I understand this sign-up site is member-run and is not operated or endorsed by Awbrey Glen Golf Club. Questions go to the Volunteer Coordinator, not the club office.",
+  "contacts": [
+    { "role": "Volunteer Coordinator", "name": "Glenn Griffee", "phone": "" }
+  ],
+  "days": [
+    { "id": "thu", "label": "Thursday", "date": "" },
+    { "id": "fri", "label": "Friday", "date": "" },
+    { "id": "sat", "label": "Saturday", "date": "" }
+  ],
+  "roles": [
+    { "id": "thu-registration", "day": "thu", "name": "Registration Table", "location": "Driving Range",
+      "shifts": [ { "id": "thu-registration-1", "start": "08:45", "end": "10:30", "slots": 4 } ] },
+    { "id": "thu-putting", "day": "thu", "name": "Putting Contest", "location": "Putting Green",
+      "shifts": [
+        { "id": "thu-putting-1", "start": "10:15", "end": "12:45", "slots": 2 },
+        { "id": "thu-putting-2", "start": "12:45", "end": "15:15", "slots": 2 } ] },
+    { "id": "thu-parimutuel", "day": "thu", "name": "Pari-Mutuel Betting Table", "location": "Clubhouse Lobby",
+      "shifts": [ { "id": "thu-parimutuel-1", "start": "16:45", "end": "19:00", "slots": 4 } ] },
+
+    { "id": "fri-parimutuel", "day": "fri", "name": "Pari-Mutuel Betting Table", "location": "Driving Range",
+      "shifts": [ { "id": "fri-parimutuel-1", "start": "07:30", "end": "09:00", "slots": 4 } ] },
+    { "id": "fri-gdc", "day": "fri", "name": "Game Day Coordinator", "location": "Driving Range",
+      "shifts": [
+        { "id": "fri-gdc-1", "start": "08:15", "end": "11:45", "slots": 1 },
+        { "id": "fri-gdc-2", "start": "11:30", "end": "14:45", "slots": 1 },
+        { "id": "fri-gdc-3", "start": "14:30", "end": "17:45", "slots": 1 } ] },
+    { "id": "fri-tc3", "day": "fri", "name": "Tee Captain — Hole #3", "location": "Driving Range",
+      "shifts": [
+        { "id": "fri-tc3-1", "start": "08:45", "end": "11:30", "slots": 1 },
+        { "id": "fri-tc3-2", "start": "11:45", "end": "14:30", "slots": 1 },
+        { "id": "fri-tc3-3", "start": "14:45", "end": "17:30", "slots": 1 } ] },
+    { "id": "fri-sp3", "day": "fri", "name": "Spotters — Hole #3", "location": "Driving Range",
+      "shifts": [
+        { "id": "fri-sp3-1", "start": "08:45", "end": "11:30", "slots": 2 },
+        { "id": "fri-sp3-2", "start": "11:45", "end": "14:30", "slots": 2 },
+        { "id": "fri-sp3-3", "start": "14:45", "end": "17:30", "slots": 2 } ] },
+    { "id": "fri-tc12", "day": "fri", "name": "Tee Captain — Hole #12", "location": "Driving Range",
+      "shifts": [
+        { "id": "fri-tc12-1", "start": "08:45", "end": "11:30", "slots": 1 },
+        { "id": "fri-tc12-2", "start": "11:45", "end": "14:30", "slots": 1 },
+        { "id": "fri-tc12-3", "start": "14:45", "end": "17:30", "slots": 1 } ] },
+    { "id": "fri-sp12", "day": "fri", "name": "Spotters — Hole #12", "location": "Driving Range",
+      "shifts": [
+        { "id": "fri-sp12-1", "start": "08:45", "end": "11:30", "slots": 2 },
+        { "id": "fri-sp12-2", "start": "11:45", "end": "14:30", "slots": 2 },
+        { "id": "fri-sp12-3", "start": "14:45", "end": "17:30", "slots": 2 } ] },
+    { "id": "fri-tc15", "day": "fri", "name": "Tee Captain — Hole #15", "location": "Driving Range",
+      "shifts": [
+        { "id": "fri-tc15-1", "start": "08:45", "end": "11:30", "slots": 1 },
+        { "id": "fri-tc15-2", "start": "11:45", "end": "14:30", "slots": 1 },
+        { "id": "fri-tc15-3", "start": "14:45", "end": "17:30", "slots": 1 } ] },
+    { "id": "fri-sp15", "day": "fri", "name": "Spotters — Hole #15", "location": "Driving Range",
+      "shifts": [
+        { "id": "fri-sp15-1", "start": "08:45", "end": "11:30", "slots": 3 },
+        { "id": "fri-sp15-2", "start": "11:45", "end": "14:30", "slots": 3 },
+        { "id": "fri-sp15-3", "start": "14:45", "end": "17:30", "slots": 3 } ] },
+
+    { "id": "sat-gdc", "day": "sat", "name": "Game Day Coordinator", "location": "Driving Range",
+      "shifts": [
+        { "id": "sat-gdc-1", "start": "08:15", "end": "10:30", "slots": 1 },
+        { "id": "sat-gdc-2", "start": "10:15", "end": "12:30", "slots": 1 },
+        { "id": "sat-gdc-3", "start": "12:15", "end": "14:30", "slots": 1 } ] },
+    { "id": "sat-tc3", "day": "sat", "name": "Tee Captain — Hole #3", "location": "Driving Range",
+      "shifts": [
+        { "id": "sat-tc3-1", "start": "08:45", "end": "11:30", "slots": 1 },
+        { "id": "sat-tc3-2", "start": "11:45", "end": "14:30", "slots": 1 } ] },
+    { "id": "sat-sp3", "day": "sat", "name": "Spotters — Hole #3", "location": "Driving Range",
+      "shifts": [
+        { "id": "sat-sp3-1", "start": "08:45", "end": "11:30", "slots": 2 },
+        { "id": "sat-sp3-2", "start": "11:45", "end": "14:30", "slots": 2 } ] },
+    { "id": "sat-tc12", "day": "sat", "name": "Tee Captain — Hole #12", "location": "Driving Range",
+      "shifts": [
+        { "id": "sat-tc12-1", "start": "08:45", "end": "11:30", "slots": 1 },
+        { "id": "sat-tc12-2", "start": "11:45", "end": "14:30", "slots": 1 } ] },
+    { "id": "sat-sp12", "day": "sat", "name": "Spotters — Hole #12", "location": "Driving Range",
+      "shifts": [
+        { "id": "sat-sp12-1", "start": "08:45", "end": "11:30", "slots": 2 },
+        { "id": "sat-sp12-2", "start": "11:45", "end": "14:30", "slots": 2 } ] },
+    { "id": "sat-tc15", "day": "sat", "name": "Tee Captain — Hole #15", "location": "Driving Range",
+      "shifts": [
+        { "id": "sat-tc15-1", "start": "08:45", "end": "11:30", "slots": 1 },
+        { "id": "sat-tc15-2", "start": "11:45", "end": "14:30", "slots": 1 } ] },
+    { "id": "sat-sp15", "day": "sat", "name": "Spotters — Hole #15", "location": "Driving Range",
+      "shifts": [
+        { "id": "sat-sp15-1", "start": "08:45", "end": "11:30", "slots": 3 },
+        { "id": "sat-sp15-2", "start": "11:45", "end": "14:30", "slots": 3 } ] },
+    { "id": "sat-parimutuel", "day": "sat", "name": "Pari-Mutuel Betting Table", "location": "Near 9th Green",
+      "shifts": [ { "id": "sat-parimutuel-1", "start": "15:00", "end": "16:00", "slots": 4 } ] }
+  ]
+}

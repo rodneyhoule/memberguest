@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Member/Guest Volunteer Sign-Up</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <p class="eyebrow" id="event-subtitle">Volunteer Sign-Up</p>
+      <h1 id="event-title">Men's Member/Guest Tournament</h1>
+      <p class="dates" id="event-dates"></p>
+      <p class="disclaimer" data-disclaimer></p>
+    </div>
+  </header>
+
+  <div id="demo-banner" class="demo-banner" hidden>
+    Demo mode: sign-ups are saved only in this browser and are not sent to anyone.
+  </div>
+
+  <main class="wrap" id="main">
+    <!-- Browse and pick shifts -->
+    <section id="view-browse">
+      <div class="how">
+        <h2>How it works</h2>
+        <ol>
+          <li>Choose a day.</li>
+          <li>Tap <strong>Pick</strong> on any open spot you'd like. You can pick several.</li>
+          <li>Tap <strong>Continue</strong> at the bottom and enter your name and contact info.</li>
+        </ol>
+        <p class="small">Already signed up? <button type="button" class="link" id="btn-find">Look up or change my shifts</button></p>
+      </div>
+
+      <nav class="day-tabs" role="tablist" id="day-tabs"></nav>
+      <div id="roles" aria-live="polite"><p class="loading">Loading shifts…</p></div>
+    </section>
+
+    <!-- Contact form -->
+    <section id="view-form" hidden>
+      <button type="button" class="link back" data-go="browse">← Back to shifts</button>
+      <h2>Your shifts</h2>
+      <ul class="picked-list" id="picked-list"></ul>
+      <div id="overlap-warning" class="warning" hidden></div>
+
+      <form id="signup-form" novalidate>
+        <h2>Your information</h2>
+        <div class="row">
+          <label>First name
+            <input name="firstName" autocomplete="given-name" required maxlength="40">
+          </label>
+          <label>Last name
+            <input name="lastName" autocomplete="family-name" required maxlength="40">
+          </label>
+        </div>
+        <label>Email
+          <input name="email" type="email" autocomplete="email" required maxlength="100">
+        </label>
+        <label>Cell phone
+          <input name="phone" type="tel" autocomplete="tel" required maxlength="20">
+        </label>
+        <p class="small">Only the volunteer coordinators see your email and phone. Other volunteers see your first name and last initial.</p>
+
+        <label class="agree">
+          <input type="checkbox" name="agreed" required>
+          <span id="agreement-text"></span>
+        </label>
+
+        <p class="error" id="form-error" role="alert" hidden></p>
+        <button type="submit" class="btn primary big" id="btn-submit">Sign me up</button>
+      </form>
+    </section>
+
+    <!-- Confirmation -->
+    <section id="view-done" hidden>
+      <div class="done-box">
+        <h2 id="done-title">You're signed up — thank you!</h2>
+        <ul class="picked-list" id="done-list"></ul>
+        <div id="done-full" class="warning" hidden></div>
+        <p>Need to make a change later? Save this link (we've also emailed it to you):</p>
+        <p class="manage-link"><a id="done-link" href="#"></a></p>
+        <button type="button" class="btn" id="btn-copy">Copy link</button>
+      </div>
+      <button type="button" class="btn big" data-go="browse">Back to all shifts</button>
+    </section>
+
+    <!-- Manage my shifts -->
+    <section id="view-manage" hidden>
+      <button type="button" class="link back" data-go="browse">← Back to shifts</button>
+      <h2 id="manage-title">My shifts</h2>
+      <ul class="picked-list" id="manage-list"></ul>
+      <p class="small">To add more shifts, go back and pick them, using the same email address.</p>
+    </section>
+
+    <!-- Find my link -->
+    <section id="view-find" hidden>
+      <button type="button" class="link back" data-go="browse">← Back to shifts</button>
+      <h2>Look up my shifts</h2>
+      <p>Enter the email you signed up with. We'll email you a link to see or change your shifts.</p>
+      <form id="find-form" novalidate>
+        <label>Email
+          <input name="email" type="email" autocomplete="email" required>
+        </label>
+        <p class="error" id="find-error" role="alert" hidden></p>
+        <button type="submit" class="btn primary big">Email me my link</button>
+      </form>
+      <p class="success" id="find-done" hidden></p>
+    </section>
+
+    <section class="contacts" id="contacts"></section>
+  </main>
+
+  <div class="cart" id="cart" hidden>
+    <div class="wrap cart-inner">
+      <span id="cart-count"></span>
+      <button type="button" class="btn primary" id="btn-continue">Continue →</button>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p data-disclaimer></p>
+    </div>
+  </footer>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
