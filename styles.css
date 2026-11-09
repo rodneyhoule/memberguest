@@ -142,3 +142,47 @@ input[type="text"], input:not([type]), input[type="email"], input[type="tel"] {
 @media print {
   .day-tabs, .cart, .how, .demo-banner { display: none; }
 }
+
+/* ---------- Admin page ---------- */
+.admin-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin-top: 20px; font-weight: 600; }
+.admin-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.small-btn { min-height: 40px; padding: 6px 12px; font-size: 0.9rem; }
+
+.people { list-style: none; padding: 0; margin: 6px 0 10px; }
+.people li {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 0; border-bottom: 1px dashed var(--line);
+}
+.people li:last-child { border-bottom: none; }
+.person { display: flex; flex-direction: column; min-width: 0; }
+.person .small { word-break: break-all; }
+.person-actions { display: flex; gap: 8px; }
+.open-slot .small { font-style: italic; }
+
+select {
+  display: block; width: 100%; margin-top: 4px; padding: 12px; font: inherit; font-weight: 400;
+  border: 1px solid #a9a597; border-radius: 8px; background: var(--card); color: var(--text);
+}
+
+dialog {
+  width: min(560px, calc(100vw - 32px)); border: 1px solid var(--line); border-radius: 12px;
+  background: var(--card); color: var(--text); padding: 4px 20px 20px;
+}
+dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
+.dialog-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+
+.print-only { display: none; }
+
+@media print {
+  body.admin { background: #fff; color: #000; padding: 0; font-size: 10pt; }
+  body.admin .site-header, body.admin .demo-banner, body.admin #view-login, body.admin #view-roster, body.admin dialog { display: none !important; }
+  body.admin .print-only { display: block; }
+  .print-day { break-after: page; }
+  .print-day:last-child { break-after: auto; }
+  .print-day h2 { font-size: 12pt; margin: 0 0 6px; }
+  .print-day table { width: 100%; border-collapse: collapse; }
+  .print-day th, .print-day td { border: 1px solid #999; padding: 3px 5px; text-align: left; vertical-align: top; font-size: 9pt; }
+  .print-day th { background: #eee; }
+}
+
+a { color: var(--accent); }

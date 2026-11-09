@@ -20,8 +20,10 @@ create table if not exists public.signups (
   email       text not null,
   phone       text not null,
   token       text not null,
-  agreed_at   timestamptz not null,
-  status      text not null default 'active' check (status in ('active', 'cancelled'))
+  agreed_at   timestamptz,          -- when the volunteer checked the disclaimer box; null if an admin added them
+  status      text not null default 'active' check (status in ('active', 'cancelled')),
+  changed_by  text not null default 'volunteer' check (changed_by in ('volunteer', 'admin')),
+  changed_at  timestamptz not null default now()
 );
 
 create unique index if not exists signups_one_active_per_person
@@ -134,7 +136,7 @@ returns boolean
 language sql security definer set search_path = public
 as $$
   with c as (
-    update signups set status = 'cancelled'
+    update signups set status = 'cancelled', changed_by = 'volunteer', changed_at = now()
     where token = p_token and shift_id = p_shift_id and status = 'active'
     returning 1
   )
@@ -170,3 +172,189 @@ create or replace view public.roster with (security_invoker = true) as
   where s.status = 'active'
   order by s.shift_id, s.created_at;
 revoke all on public.roster from anon, authenticated;
+
+-- ============================================================
+-- Admin page (admin.html): protected by one shared passcode.
+-- Set or change the passcode in the SQL Editor (see README):
+--   select public.set_admin_passcode('your-passcode-here');
+-- ============================================================
+
+create extension if not exists pgcrypto with schema extensions;
+
+create table if not exists public.admin_settings (
+  id            int primary key default 1 check (id = 1),
+  passcode_hash text not null
+);
+
+-- Wrong passcodes, for the lockout (10 wrong tries in 15 minutes).
+create table if not exists public.admin_failures (
+  at timestamptz not null default now()
+);
+
+alter table public.admin_settings enable row level security;
+alter table public.admin_failures enable row level security;
+revoke all on public.admin_settings, public.admin_failures from anon, authenticated;
+
+create or replace function public.set_admin_passcode(p_new text)
+returns text
+language plpgsql security definer set search_path = public, extensions
+as $$
+begin
+  if length(coalesce(p_new, '')) < 8 then
+    raise exception 'Use a passcode of at least 8 characters.';
+  end if;
+  insert into admin_settings (id, passcode_hash) values (1, crypt(p_new, gen_salt('bf')))
+  on conflict (id) do update set passcode_hash = excluded.passcode_hash;
+  delete from admin_failures;
+  return 'Admin passcode set.';
+end;
+$$;
+
+-- Returns null when the passcode is right, otherwise a message to show.
+-- Callers return that message instead of raising, so the failure record is kept.
+create or replace function public.admin_check_(p_code text)
+returns text
+language plpgsql security definer set search_path = public, extensions
+as $$
+declare
+  v_hash text;
+begin
+  delete from admin_failures where at < now() - interval '1 day';
+  if (select count(*) from admin_failures where at > now() - interval '15 minutes') >= 10 then
+    return 'Too many wrong passcodes. Please wait 15 minutes and try again.';
+  end if;
+  select passcode_hash into v_hash from admin_settings where id = 1;
+  if v_hash is null then
+    return 'No admin passcode has been set yet.';
+  end if;
+  if crypt(coalesce(p_code, ''), v_hash) = v_hash then
+    return null;
+  end if;
+  insert into admin_failures default values;
+  return 'Wrong passcode.';
+end;
+$$;
+
+create or replace function public.admin_roster(p_code text)
+returns json
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_err text := admin_check_(p_code);
+begin
+  if v_err is not null then
+    return json_build_object('ok', false, 'error', v_err);
+  end if;
+  return json_build_object('ok', true, 'signups', coalesce((
+    select json_agg(json_build_object(
+      'id', id, 'shiftId', shift_id, 'firstName', first_name, 'lastName', last_name,
+      'email', email, 'phone', phone, 'createdAt', created_at, 'changedBy', changed_by
+    ) order by created_at)
+    from signups where status = 'active'
+  ), '[]'::json));
+end;
+$$;
+
+create or replace function public.admin_move(p_code text, p_signup_id bigint, p_shift_id text)
+returns json
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_err   text := admin_check_(p_code);
+  v_row   signups%rowtype;
+  v_slots int;
+begin
+  if v_err is not null then
+    return json_build_object('ok', false, 'error', v_err);
+  end if;
+  select * into v_row from signups where id = p_signup_id and status = 'active' for update;
+  if not found then
+    return json_build_object('ok', false, 'error', 'That sign-up no longer exists. Refresh the page.');
+  end if;
+  if v_row.shift_id = p_shift_id then
+    return json_build_object('ok', true);
+  end if;
+  select slots into v_slots from shifts where id = p_shift_id for update;
+  if not found then
+    return json_build_object('ok', false, 'error', 'Unknown shift.');
+  end if;
+  if exists (select 1 from signups where shift_id = p_shift_id and email = v_row.email and status = 'active') then
+    return json_build_object('ok', false, 'error', v_row.first_name || ' is already on that shift.');
+  end if;
+  if (select count(*) from signups where shift_id = p_shift_id and status = 'active') >= v_slots then
+    return json_build_object('ok', false, 'error', 'That shift is full. Refresh to see the latest openings.');
+  end if;
+  update signups set shift_id = p_shift_id, changed_by = 'admin', changed_at = now() where id = p_signup_id;
+  return json_build_object('ok', true);
+end;
+$$;
+
+create or replace function public.admin_cancel(p_code text, p_signup_id bigint)
+returns json
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_err text := admin_check_(p_code);
+begin
+  if v_err is not null then
+    return json_build_object('ok', false, 'error', v_err);
+  end if;
+  update signups set status = 'cancelled', changed_by = 'admin', changed_at = now()
+  where id = p_signup_id and status = 'active';
+  return json_build_object('ok', true);
+end;
+$$;
+
+-- For volunteers who call or email instead of using the site.
+create or replace function public.admin_add(
+  p_code text, p_first text, p_last text, p_email text, p_phone text, p_shift_id text
+)
+returns json
+language plpgsql security definer set search_path = public
+as $$
+declare
+  v_err   text := admin_check_(p_code);
+  v_first text := left(trim(coalesce(p_first, '')), 40);
+  v_last  text := left(trim(coalesce(p_last, '')), 40);
+  v_email text := left(lower(trim(coalesce(p_email, ''))), 100);
+  v_phone text := left(trim(coalesce(p_phone, '')), 20);
+  v_slots int;
+  v_token text;
+begin
+  if v_err is not null then
+    return json_build_object('ok', false, 'error', v_err);
+  end if;
+  if v_first = '' or v_last = '' then
+    return json_build_object('ok', false, 'error', 'Enter a first and last name.');
+  end if;
+  if v_email !~ '^[^\s@]+@[^\s@]+\.[^\s@]+$' then
+    return json_build_object('ok', false, 'error', 'Enter a valid email address.');
+  end if;
+  if length(regexp_replace(v_phone, '\D', '', 'g')) < 10 then
+    return json_build_object('ok', false, 'error', 'Enter a 10-digit phone number.');
+  end if;
+  select slots into v_slots from shifts where id = p_shift_id for update;
+  if not found then
+    return json_build_object('ok', false, 'error', 'Unknown shift.');
+  end if;
+  if exists (select 1 from signups where shift_id = p_shift_id and email = v_email and status = 'active') then
+    return json_build_object('ok', false, 'error', v_first || ' is already on that shift.');
+  end if;
+  if (select count(*) from signups where shift_id = p_shift_id and status = 'active') >= v_slots then
+    return json_build_object('ok', false, 'error', 'That shift is full. Refresh to see the latest openings.');
+  end if;
+  select token into v_token from signups where email = v_email limit 1;
+  if v_token is null then
+    v_token := replace(gen_random_uuid()::text, '-', '');
+  end if;
+  insert into signups (shift_id, first_name, last_name, email, phone, token, agreed_at, changed_by)
+  values (p_shift_id, v_first, v_last, v_email, v_phone, v_token, null, 'admin');
+  return json_build_object('ok', true);
+end;
+$$;
+
+revoke execute on function public.set_admin_passcode(text), public.admin_check_(text),
+  public.admin_roster(text), public.admin_move(text, bigint, text), public.admin_cancel(text, bigint),
+  public.admin_add(text, text, text, text, text, text) from public, anon, authenticated;
+grant execute on function public.admin_roster(text), public.admin_move(text, bigint, text),
+  public.admin_cancel(text, bigint), public.admin_add(text, text, text, text, text, text) to anon, authenticated;

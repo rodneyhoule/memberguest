@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Volunteer Admin</title>
+  <meta name="robots" content="noindex">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="admin">
+  <header class="site-header">
+    <div class="wrap">
+      <p class="eyebrow">Volunteer Admin</p>
+      <h1 id="event-title">Men's Member/Guest Tournament</h1>
+      <p class="dates" id="event-dates"></p>
+    </div>
+  </header>
+
+  <div id="demo-banner" class="demo-banner" hidden>
+    Demo mode: uses the demo sign-ups saved in this browser. The passcode is <strong>demo</strong>.
+  </div>
+
+  <main class="wrap">
+    <!-- Passcode -->
+    <section id="view-login">
+      <h2>Admin sign-in</h2>
+      <form id="login-form" novalidate>
+        <label>Admin passcode
+          <input name="code" type="password" autocomplete="current-password" required>
+        </label>
+        <p class="error" id="login-error" role="alert" hidden></p>
+        <button type="submit" class="btn primary big">Sign in</button>
+      </form>
+    </section>
+
+    <!-- Roster -->
+    <section id="view-roster" hidden>
+      <div class="admin-bar">
+        <span id="totals"></span>
+        <span class="admin-actions">
+          <button type="button" class="btn" id="btn-refresh">Refresh</button>
+          <button type="button" class="btn" id="btn-csv">Download CSV</button>
+          <button type="button" class="btn" id="btn-print">Print roster</button>
+          <button type="button" class="link" id="btn-logout">Sign out</button>
+        </span>
+      </div>
+      <p class="error" id="roster-error" role="alert" hidden></p>
+      <nav class="day-tabs" role="tablist" id="day-tabs"></nav>
+      <div id="roles"></div>
+    </section>
+
+    <!-- Print-only roster, all days -->
+    <section id="print-roster" class="print-only"></section>
+  </main>
+
+  <!-- Move dialog -->
+  <dialog id="move-dialog">
+    <form method="dialog" id="move-form">
+      <h2 id="move-title">Move</h2>
+      <p id="move-from" class="small"></p>
+      <label>Move to
+        <select name="shift" id="move-select" required></select>
+      </label>
+      <p class="error" id="move-error" role="alert" hidden></p>
+      <div class="dialog-buttons">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn primary" id="move-submit">Move</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Add dialog -->
+  <dialog id="add-dialog">
+    <form method="dialog" id="add-form" novalidate>
+      <h2>Add a volunteer</h2>
+      <p id="add-to" class="small"></p>
+      <div class="row">
+        <label>First name <input name="firstName" required maxlength="40"></label>
+        <label>Last name <input name="lastName" required maxlength="40"></label>
+      </div>
+      <label>Email <input name="email" type="email" required maxlength="100"></label>
+      <label>Cell phone <input name="phone" type="tel" required maxlength="20"></label>
+      <p class="error" id="add-error" role="alert" hidden></p>
+      <div class="dialog-buttons">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn primary" id="add-submit">Add</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

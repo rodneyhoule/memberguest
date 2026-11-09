@@ -14,6 +14,7 @@ Live site: https://rodneyhoule.github.io/memberguest/
 | `shifts.json` | **Edit this each year.** Event dates, days, roles, shift times, number of spots, disclaimer wording, contacts. |
 | `config.js` | Supabase project URL and public key. Leave empty for demo mode. |
 | `index.html`, `styles.css`, `app.js` | The sign-up page. |
+| `admin.html`, `admin.js` | The admin page (passcode protected). |
 | `supabase/schema.sql` | Database tables and functions. Run once in Supabase. |
 | `supabase/seed.sql` | The shift list for the database, generated from `shifts.json`. |
 | `scripts/make_seed.py` | Regenerates `supabase/seed.sql`. |
@@ -36,6 +37,12 @@ Open http://localhost:8000. With `config.js` empty, sign-ups are saved only in y
    - the **Project URL** (`https://xxxx.supabase.co`)
    - the **publishable** key (or the legacy **anon public** key). Never use the secret / service_role key.
 5. Put both into `config.js`, then commit and push. The "Demo mode" banner disappears.
+6. Set the admin passcode: in a new SQL Editor query, run (with your own passcode, 8+ characters):
+   ```sql
+   select public.set_admin_passcode('your-passcode-here');
+   ```
+   Run it again any time to change the passcode, for example when someone leaves the committee.
+   Then delete the query from the SQL Editor's history so the passcode isn't saved there.
 
 The public key is safe to publish. The tables are locked, and the key can only call the sign-up
 functions, which never return emails or phone numbers.
@@ -49,12 +56,24 @@ GitHub turns off scheduled workflows in repositories with no activity for 60 day
 To check it: the repo's **Actions** tab → **Keep Supabase awake** → **Run workflow**.
 GitHub emails you if a run fails.
 
-## For the coordinator
+## For admins
 
-- **See who signed up:** Supabase dashboard → **Table Editor** → `roster` (active sign-ups with
-  names, phone numbers and emails). Use **Export → CSV** to print or share it.
-- **All history:** the `signups` table. Cancelled shifts stay with status `cancelled`.
-- **Remove or move someone:** edit their row in `signups` (set `status` to `cancelled`, or change `shift_id`).
+Admin page: https://rodneyhoule.github.io/memberguest/admin.html (it isn't linked from the public page).
+Sign in with the shared admin passcode. On the admin page you can:
+
+- **See the full roster** by day, with names, phones (tap to call) and emails.
+- **Move** someone to any shift with an open spot.
+- **Remove** someone from a shift.
+- **+ Add** a volunteer who called or emailed instead of using the site.
+- **Download CSV** or **Print roster** (one page per day, laid out like the old printed list).
+
+Volunteers are **not** notified when an admin moves or removes them, so call or text them.
+
+After 10 wrong passcodes in 15 minutes, admin sign-in is locked for everyone for 15 minutes.
+The passcode is remembered only until the browser tab is closed.
+
+Behind the scenes: the `signups` table in the Supabase dashboard keeps everything, including
+cancelled rows. `changed_by` shows whether the volunteer or an admin made the last change.
 
 ## Changing the shifts
 
