@@ -177,7 +177,7 @@
     $("#roles").replaceChildren(...state.config.roles.filter((r) => r.day === state.day).map((role) =>
       el("article", { class: "role" },
         el("h3", {}, role.name),
-        el("p", { class: "where" }, "Meet at: " + role.location),
+        role.location ? el("p", { class: "where" }, "Location: " + role.location) : "",
         role.shifts.map((shift) => {
           const people = peopleOn(shift.id);
           const open = openOn(shift.id);
@@ -325,7 +325,7 @@
     return opts.days.map((dayId) => {
       const roles = state.config.roles.filter((r) => r.day === dayId);
       const maxSlots = Math.max(...roles.flatMap((r) => r.shifts).map((s) => s.slots));
-      const head = ["Role", "Meet At", "Shift Time"];
+      const head = ["Role", "Shift Time"];
       for (let i = 1; i <= maxSlots; i++) head.push("Volunteer #" + i);
       return el("section", { class: "print-page" },
         printHeader(dayLabel(dayId).toUpperCase()),
@@ -341,8 +341,8 @@
                 el("td", { class: "open" }, "OPEN"));
             }
             return el("tr", {},
-              n === 0 ? el("td", { rowspan: role.shifts.length, class: "role-cell" }, role.name) : "",
-              n === 0 ? el("td", { rowspan: role.shifts.length }, role.location) : "",
+              n === 0 ? el("td", { rowspan: role.shifts.length, class: "role-cell" }, role.name,
+                role.location ? [el("br"), el("span", { class: "role-where" }, role.location)] : "") : "",
               el("td", { class: "nowrap" }, fmtRange(shift)), cells);
           })))),
         printFooter());
@@ -378,20 +378,20 @@
             .map((id, i) => {
               const { shift, role } = state.shiftById[id];
               return [i ? el("br") : "", state.config.days.find((d) => d.id === role.day).label.slice(0, 3) + " " +
-                fmtRange(shift) + " — " + role.name + " (" + role.location + ")"];
+                fmtRange(shift) + " — " + role.name + (role.location ? " (" + role.location + ")" : "")];
             })))))) : el("p", {}, "No volunteers signed up for these days yet."),
       printFooter())];
   }
 
   function downloadCsv() {
     const esc = (v) => '"' + String(v).replace(/"/g, '""') + '"';
-    const lines = [["Day", "Role", "Meet At", "Shift Time", "First Name", "Last Name", "Phone", "Email"].map(esc).join(",")];
+    const lines = [["Day", "Role", "Location", "Shift Time", "First Name", "Last Name", "Phone", "Email"].map(esc).join(",")];
     rosterRows().forEach((r) => {
       const people = r.people.length ? r.people : [];
-      people.forEach((p) => lines.push([dayLabel(r.day.id), r.role.name, r.role.location, fmtRange(r.shift),
+      people.forEach((p) => lines.push([dayLabel(r.day.id), r.role.name, r.role.location || "", fmtRange(r.shift),
         p.firstName, p.lastName, p.phone, p.email].map(esc).join(",")));
       for (let i = people.length; i < r.shift.slots; i++) {
-        lines.push([dayLabel(r.day.id), r.role.name, r.role.location, fmtRange(r.shift), "OPEN", "", "", ""].map(esc).join(","));
+        lines.push([dayLabel(r.day.id), r.role.name, r.role.location || "", fmtRange(r.shift), "OPEN", "", "", ""].map(esc).join(","));
       }
     });
     const blob = new Blob([lines.join("\r\n")], { type: "text/csv" });

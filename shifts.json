@@ -15,7 +15,7 @@
     { "id": "sat", "label": "Saturday", "date": "" }
   ],
   "roles": [
-    { "id": "thu-registration", "day": "thu", "name": "Registration Table", "location": "Driving Range",
+    { "id": "thu-registration", "day": "thu", "name": "Registration Table",
       "shifts": [ { "id": "thu-registration-1", "start": "08:45", "end": "10:30", "slots": 4 } ] },
     { "id": "thu-putting", "day": "thu", "name": "Putting Contest", "location": "Putting Green",
       "shifts": [
@@ -24,70 +24,70 @@
     { "id": "thu-parimutuel", "day": "thu", "name": "Pari-Mutuel Betting Table", "location": "Clubhouse Lobby",
       "shifts": [ { "id": "thu-parimutuel-1", "start": "16:45", "end": "19:00", "slots": 4 } ] },
 
-    { "id": "fri-parimutuel", "day": "fri", "name": "Pari-Mutuel Betting Table", "location": "Driving Range",
+    { "id": "fri-parimutuel", "day": "fri", "name": "Pari-Mutuel Betting Table",
       "shifts": [ { "id": "fri-parimutuel-1", "start": "07:30", "end": "09:00", "slots": 4 } ] },
-    { "id": "fri-gdc", "day": "fri", "name": "Game Day Coordinator", "location": "Driving Range",
+    { "id": "fri-gdc", "day": "fri", "name": "Game Day Coordinator",
       "shifts": [
         { "id": "fri-gdc-1", "start": "08:15", "end": "11:45", "slots": 1 },
         { "id": "fri-gdc-2", "start": "11:30", "end": "14:45", "slots": 1 },
         { "id": "fri-gdc-3", "start": "14:30", "end": "17:45", "slots": 1 } ] },
-    { "id": "fri-tc3", "day": "fri", "name": "Tee Captain — Hole #3", "location": "Driving Range",
+    { "id": "fri-tc3", "day": "fri", "name": "Tee Captain — Hole #3",
       "shifts": [
         { "id": "fri-tc3-1", "start": "08:45", "end": "11:30", "slots": 1 },
         { "id": "fri-tc3-2", "start": "11:45", "end": "14:30", "slots": 1 },
         { "id": "fri-tc3-3", "start": "14:45", "end": "17:30", "slots": 1 } ] },
-    { "id": "fri-sp3", "day": "fri", "name": "Spotters — Hole #3", "location": "Driving Range",
+    { "id": "fri-sp3", "day": "fri", "name": "Spotters — Hole #3",
       "shifts": [
         { "id": "fri-sp3-1", "start": "08:45", "end": "11:30", "slots": 2 },
         { "id": "fri-sp3-2", "start": "11:45", "end": "14:30", "slots": 2 },
         { "id": "fri-sp3-3", "start": "14:45", "end": "17:30", "slots": 2 } ] },
-    { "id": "fri-tc12", "day": "fri", "name": "Tee Captain — Hole #12", "location": "Driving Range",
+    { "id": "fri-tc12", "day": "fri", "name": "Tee Captain — Hole #12",
       "shifts": [
         { "id": "fri-tc12-1", "start": "08:45", "end": "11:30", "slots": 1 },
         { "id": "fri-tc12-2", "start": "11:45", "end": "14:30", "slots": 1 },
         { "id": "fri-tc12-3", "start": "14:45", "end": "17:30", "slots": 1 } ] },
-    { "id": "fri-sp12", "day": "fri", "name": "Spotters — Hole #12", "location": "Driving Range",
+    { "id": "fri-sp12", "day": "fri", "name": "Spotters — Hole #12",
       "shifts": [
         { "id": "fri-sp12-1", "start": "08:45", "end": "11:30", "slots": 2 },
         { "id": "fri-sp12-2", "start": "11:45", "end": "14:30", "slots": 2 },
         { "id": "fri-sp12-3", "start": "14:45", "end": "17:30", "slots": 2 } ] },
-    { "id": "fri-tc15", "day": "fri", "name": "Tee Captain — Hole #15", "location": "Driving Range",
+    { "id": "fri-tc15", "day": "fri", "name": "Tee Captain — Hole #15",
       "shifts": [
         { "id": "fri-tc15-1", "start": "08:45", "end": "11:30", "slots": 1 },
         { "id": "fri-tc15-2", "start": "11:45", "end": "14:30", "slots": 1 },
         { "id": "fri-tc15-3", "start": "14:45", "end": "17:30", "slots": 1 } ] },
-    { "id": "fri-sp15", "day": "fri", "name": "Spotters — Hole #15", "location": "Driving Range",
+    { "id": "fri-sp15", "day": "fri", "name": "Spotters — Hole #15",
       "shifts": [
         { "id": "fri-sp15-1", "start": "08:45", "end": "11:30", "slots": 3 },
         { "id": "fri-sp15-2", "start": "11:45", "end": "14:30", "slots": 3 },
         { "id": "fri-sp15-3", "start": "14:45", "end": "17:30", "slots": 3 } ] },
 
-    { "id": "sat-gdc", "day": "sat", "name": "Game Day Coordinator", "location": "Driving Range",
+    { "id": "sat-gdc", "day": "sat", "name": "Game Day Coordinator",
       "shifts": [
         { "id": "sat-gdc-1", "start": "08:15", "end": "10:30", "slots": 1 },
         { "id": "sat-gdc-2", "start": "10:15", "end": "12:30", "slots": 1 },
         { "id": "sat-gdc-3", "start": "12:15", "end": "14:30", "slots": 1 } ] },
-    { "id": "sat-tc3", "day": "sat", "name": "Tee Captain — Hole #3", "location": "Driving Range",
+    { "id": "sat-tc3", "day": "sat", "name": "Tee Captain — Hole #3",
       "shifts": [
         { "id": "sat-tc3-1", "start": "08:45", "end": "11:30", "slots": 1 },
         { "id": "sat-tc3-2", "start": "11:45", "end": "14:30", "slots": 1 } ] },
-    { "id": "sat-sp3", "day": "sat", "name": "Spotters — Hole #3", "location": "Driving Range",
+    { "id": "sat-sp3", "day": "sat", "name": "Spotters — Hole #3",
       "shifts": [
         { "id": "sat-sp3-1", "start": "08:45", "end": "11:30", "slots": 2 },
         { "id": "sat-sp3-2", "start": "11:45", "end": "14:30", "slots": 2 } ] },
-    { "id": "sat-tc12", "day": "sat", "name": "Tee Captain — Hole #12", "location": "Driving Range",
+    { "id": "sat-tc12", "day": "sat", "name": "Tee Captain — Hole #12",
       "shifts": [
         { "id": "sat-tc12-1", "start": "08:45", "end": "11:30", "slots": 1 },
         { "id": "sat-tc12-2", "start": "11:45", "end": "14:30", "slots": 1 } ] },
-    { "id": "sat-sp12", "day": "sat", "name": "Spotters — Hole #12", "location": "Driving Range",
+    { "id": "sat-sp12", "day": "sat", "name": "Spotters — Hole #12",
       "shifts": [
         { "id": "sat-sp12-1", "start": "08:45", "end": "11:30", "slots": 2 },
         { "id": "sat-sp12-2", "start": "11:45", "end": "14:30", "slots": 2 } ] },
-    { "id": "sat-tc15", "day": "sat", "name": "Tee Captain — Hole #15", "location": "Driving Range",
+    { "id": "sat-tc15", "day": "sat", "name": "Tee Captain — Hole #15",
       "shifts": [
         { "id": "sat-tc15-1", "start": "08:45", "end": "11:30", "slots": 1 },
         { "id": "sat-tc15-2", "start": "11:45", "end": "14:30", "slots": 1 } ] },
-    { "id": "sat-sp15", "day": "sat", "name": "Spotters — Hole #15", "location": "Driving Range",
+    { "id": "sat-sp15", "day": "sat", "name": "Spotters — Hole #15",
       "shifts": [
         { "id": "sat-sp15-1", "start": "08:45", "end": "11:30", "slots": 3 },
         { "id": "sat-sp15-2", "start": "11:45", "end": "14:30", "slots": 3 } ] },

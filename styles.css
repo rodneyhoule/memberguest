@@ -196,6 +196,7 @@ label.choice input { width: 22px; height: 22px; flex: none; margin: 2px 0 0; }
   .print-page tbody { break-inside: avoid; }
   .print-page tbody tr:first-child td { border-top: 2px solid #000; }
   .print-page .role-cell { font-weight: 700; }
+  .print-page .role-where { font-weight: 400; font-style: italic; font-size: 8pt; }
   .print-page .phone { font-size: 8pt; white-space: nowrap; }
   .print-page td.open { color: #555; font-style: italic; }
   .print-page td.na { background: #f2f2f2; }

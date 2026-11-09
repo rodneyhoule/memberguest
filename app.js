@@ -189,7 +189,7 @@
     return el("li", {},
       el("div", {},
         el("span", { class: "what" }, role.name),
-        el("span", { class: "when" }, dayLabel(role.day) + " · " + fmtRange(shift) + " · Meet at " + role.location)),
+        el("span", { class: "when" }, dayLabel(role.day) + " · " + fmtRange(shift) + (role.location ? " · " + role.location : ""))),
       extra || "");
   }
 
@@ -213,7 +213,7 @@
     $("#roles").replaceChildren(...roles.map((role) =>
       el("article", { class: "role" },
         el("h3", {}, role.name),
-        el("p", { class: "where" }, "Meet at: " + role.location),
+        role.location ? el("p", { class: "where" }, "Location: " + role.location) : "",
         role.shifts.map((shift) => {
           const names = state.filled[shift.id] || [];
           const open = Math.max(0, shift.slots - names.length);
