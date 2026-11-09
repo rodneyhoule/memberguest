@@ -176,7 +176,7 @@
 
     $("#roles").replaceChildren(...state.config.roles.filter((r) => r.day === state.day).map((role) =>
       el("article", { class: "role" },
-        el("h3", {}, role.name),
+        el("h3", {}, role.name, role.adminOnly ? el("span", { class: "badge" }, "Admin only") : ""),
         role.location ? el("p", { class: "where" }, "Location: " + role.location) : "",
         role.shifts.map((shift) => {
           const people = peopleOn(shift.id);

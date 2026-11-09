@@ -89,6 +89,7 @@
           const added = [], full = [], already = [];
           p.shiftIds.forEach((id) => {
             const info = state.shiftById[id];
+            if (!info || info.role.adminOnly) return;
             const taken = active.filter((r) => r.shiftId === id);
             if (taken.some((r) => r.email === email)) already.push(id);
             else if (taken.length >= info.shift.slots) full.push(id);
@@ -195,10 +196,13 @@
 
   // ---------- Browse ----------
 
+  // Roles volunteers can pick themselves; admin-only roles are filled from admin.html.
+  const publicRoles = () => state.config.roles.filter((r) => !r.adminOnly);
+
   function renderTabs() {
     const nav = $("#day-tabs");
     nav.replaceChildren(...state.config.days.map((d) => {
-      const open = state.config.roles.filter((r) => r.day === d.id)
+      const open = publicRoles().filter((r) => r.day === d.id)
         .flatMap((r) => r.shifts)
         .reduce((n, s) => n + Math.max(0, s.slots - (state.filled[s.id] || []).length), 0);
       return el("button", {
@@ -209,7 +213,7 @@
   }
 
   function renderRoles() {
-    const roles = state.config.roles.filter((r) => r.day === state.day);
+    const roles = publicRoles().filter((r) => r.day === state.day);
     $("#roles").replaceChildren(...roles.map((role) =>
       el("article", { class: "role" },
         el("h3", {}, role.name),

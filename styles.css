@@ -208,3 +208,9 @@ label.choice input { width: 22px; height: 22px; flex: none; margin: 2px 0 0; }
 }
 
 a { color: var(--accent); }
+
+.badge {
+  display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; vertical-align: middle;
+  font-size: 0.7rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase;
+  background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--text);
+}

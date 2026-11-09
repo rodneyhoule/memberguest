@@ -7,9 +7,11 @@
 -- talks to the functions below.
 
 create table if not exists public.shifts (
-  id    text primary key,
-  slots int  not null check (slots > 0)
+  id         text primary key,
+  slots      int  not null check (slots > 0),
+  admin_only boolean not null default false   -- filled only from the admin page (e.g. Game Day Coordinator)
 );
+alter table public.shifts add column if not exists admin_only boolean not null default false;
 
 create table if not exists public.signups (
   id          bigint generated always as identity primary key,
@@ -95,7 +97,8 @@ begin
 
   -- Sorted so two people signing up at once always lock shifts in the same order.
   foreach v_id in array (select array_agg(distinct x order by x) from unnest(p_shift_ids) x) loop
-    select slots into v_slots from shifts where id = v_id for update;
+    -- Admin-only shifts can't be taken from the public page.
+    select slots into v_slots from shifts where id = v_id and not admin_only for update;
     if not found then
       continue;
     end if;
