@@ -173,16 +173,37 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.45); }
 
 .print-only { display: none; }
 
+fieldset.choices { border: 1px solid var(--line); border-radius: 10px; margin: 12px 0; padding: 6px 14px 10px; }
+fieldset.choices legend { font-weight: 600; padding: 0 6px; }
+label.choice { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; margin: 8px 0; }
+label.choice input { width: 22px; height: 22px; flex: none; margin: 2px 0 0; }
+
+@page { size: landscape; margin: 0.4in; }
+
 @media print {
   body.admin { background: #fff; color: #000; padding: 0; font-size: 10pt; }
   body.admin .site-header, body.admin .demo-banner, body.admin #view-login, body.admin #view-roster, body.admin dialog { display: none !important; }
+  body.admin main.wrap { max-width: none; padding: 0; }
   body.admin .print-only { display: block; }
-  .print-day { break-after: page; }
-  .print-day:last-child { break-after: auto; }
-  .print-day h2 { font-size: 12pt; margin: 0 0 6px; }
-  .print-day table { width: 100%; border-collapse: collapse; }
-  .print-day th, .print-day td { border: 1px solid #999; padding: 3px 5px; text-align: left; vertical-align: top; font-size: 9pt; }
-  .print-day th { background: #eee; }
+  .print-page { break-after: page; }
+  .print-page:last-child { break-after: auto; }
+  .print-head { border-bottom: 2px solid #000; margin-bottom: 8px; padding-bottom: 4px; }
+  .print-title { font-size: 10pt; }
+  .print-head h2 { font-size: 15pt; margin: 2px 0 0; }
+  .print-page table { width: 100%; border-collapse: collapse; }
+  .print-page th, .print-page td { border: 1px solid #777; padding: 3px 6px; text-align: left; vertical-align: top; font-size: 9pt; color: #000; }
+  .print-page th { background: #e6e6e6; }
+  .print-page tbody { break-inside: avoid; }
+  .print-page tbody tr:first-child td { border-top: 2px solid #000; }
+  .print-page .role-cell { font-weight: 700; }
+  .print-page .phone { font-size: 8pt; white-space: nowrap; }
+  .print-page td.open { color: #555; font-style: italic; }
+  .print-page td.na { background: #f2f2f2; }
+  .print-page .nowrap { white-space: nowrap; }
+  .print-page .check { width: 1.5em; text-align: center; font-size: 12pt; }
+  .print-page tr { break-inside: avoid; }
+  .print-foot { margin-top: 10px; font-size: 9pt; }
+  .print-foot .small { color: #555; margin-top: 2px; }
 }
 
 a { color: var(--accent); }

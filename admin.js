@@ -118,7 +118,7 @@
       else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
       else if (v !== false && v != null) node.setAttribute(k, v === true ? "" : v);
     });
-    children.flat().forEach((c) => node.append(c instanceof Node ? c : document.createTextNode(c)));
+    children.flat(Infinity).forEach((c) => node.append(c instanceof Node ? c : document.createTextNode(c)));
     return node;
   }
 
@@ -198,8 +198,6 @@
                 el("span", { class: "small" }, open === 1 ? "1 open spot" : open + " open spots"),
                 el("button", { type: "button", class: "btn small-btn", onclick: () => openAdd(shift.id) }, "+ Add")) : ""));
         }))));
-
-    renderPrint();
   }
 
   async function cancelPerson(p) {
@@ -285,23 +283,104 @@
         role.shifts.map((shift) => ({ day: d, role, shift, people: peopleOn(shift.id) }))));
   }
 
-  function renderPrint() {
-    const maxSlots = Math.max(...state.config.roles.flatMap((r) => r.shifts).map((s) => s.slots));
-    const head = ["Role", "Meet At", "Shift Time"];
-    for (let i = 1; i <= maxSlots; i++) head.push("Volunteer #" + i);
-    $("#print-roster").replaceChildren(...state.config.days.map((d) =>
-      el("div", { class: "print-day" },
-        el("h2", {}, dayLabel(d.id).toUpperCase()),
+  function openPrint() {
+    $("#print-days").replaceChildren(...state.config.days.map((d) =>
+      el("label", { class: "choice" },
+        el("input", { type: "checkbox", name: "day", value: d.id, checked: true }),
+        el("span", {}, dayLabel(d.id)))));
+    showError("#print-error", "");
+    $("#print-dialog").showModal();
+  }
+
+  function submitPrint(e) {
+    e.preventDefault();
+    const f = e.target;
+    const days = [...f.querySelectorAll("input[name=day]:checked")].map((i) => i.value);
+    if (!days.length) { showError("#print-error", "Choose at least one day."); return; }
+    const opts = { days, phones: f.phones.checked };
+    $("#print-roster").replaceChildren(...(f.layout.value === "person" ? printByPerson(opts) : printByShift(opts)));
+    $("#print-dialog").close();
+    // Let the dialog finish closing before the print preview opens.
+    setTimeout(() => window.print(), 50);
+  }
+
+  function printHeader(subtitle) {
+    const c = state.config;
+    return el("header", { class: "print-head" },
+      el("div", { class: "print-title" }, c.event.title + (c.event.dates ? " · " + c.event.dates : "")),
+      el("h2", {}, subtitle));
+  }
+
+  function printFooter() {
+    const contacts = state.config.contacts.filter((p) => p.name);
+    const printed = "Printed " + new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+    return el("footer", { class: "print-foot" },
+      contacts.length ? el("div", {}, el("strong", {}, "Important cell phone #'s: "),
+        contacts.map((p, i) => [i ? " · " : "", p.role + ": " + p.name + (p.phone ? " " + p.phone : "")])) : "",
+      el("div", { class: "small" }, printed));
+  }
+
+  // One page per day, one row per shift, like the old printed volunteer list.
+  function printByShift(opts) {
+    return opts.days.map((dayId) => {
+      const roles = state.config.roles.filter((r) => r.day === dayId);
+      const maxSlots = Math.max(...roles.flatMap((r) => r.shifts).map((s) => s.slots));
+      const head = ["Role", "Meet At", "Shift Time"];
+      for (let i = 1; i <= maxSlots; i++) head.push("Volunteer #" + i);
+      return el("section", { class: "print-page" },
+        printHeader(dayLabel(dayId).toUpperCase()),
         el("table", {},
           el("thead", {}, el("tr", {}, head.map((h) => el("th", {}, h)))),
-          el("tbody", {}, rosterRows().filter((r) => r.day.id === d.id).map((r) => {
+          roles.map((role) => el("tbody", {}, role.shifts.map((shift, n) => {
+            const people = peopleOn(shift.id);
             const cells = [];
             for (let i = 0; i < maxSlots; i++) {
-              const p = r.people[i];
-              cells.push(el("td", {}, i >= r.shift.slots ? "" : p ? [fullName(p), el("br"), p.phone] : "OPEN"));
+              const p = people[i];
+              cells.push(i >= shift.slots ? el("td", { class: "na" }) :
+                p ? el("td", {}, fullName(p), opts.phones ? [el("br"), el("span", { class: "phone" }, p.phone)] : "") :
+                el("td", { class: "open" }, "OPEN"));
             }
-            return el("tr", {}, el("td", {}, r.role.name), el("td", {}, r.role.location), el("td", {}, fmtRange(r.shift)), cells);
-          }))))));
+            return el("tr", {},
+              n === 0 ? el("td", { rowspan: role.shifts.length, class: "role-cell" }, role.name) : "",
+              n === 0 ? el("td", { rowspan: role.shifts.length }, role.location) : "",
+              el("td", { class: "nowrap" }, fmtRange(shift)), cells);
+          })))),
+        printFooter());
+    });
+  }
+
+  // Alphabetical list of volunteers with all their shifts, for a check-in table.
+  function printByPerson(opts) {
+    const byPerson = new Map();
+    state.signups
+      .filter((s) => opts.days.includes(state.shiftById[s.shiftId].role.day))
+      .forEach((s) => {
+        const key = s.email;
+        if (!byPerson.has(key)) byPerson.set(key, { first: s.firstName, last: s.lastName, phone: s.phone, shifts: [] });
+        byPerson.get(key).shifts.push(s.shiftId);
+      });
+    const dayOrder = state.config.days.map((d) => d.id);
+    const people = [...byPerson.values()].sort((a, b) =>
+      (a.last + " " + a.first).localeCompare(b.last + " " + b.first));
+    const dayNames = opts.days.map((d) => state.config.days.find((x) => x.id === d).label).join(", ");
+    const head = ["✓", "Name"].concat(opts.phones ? ["Phone"] : [], ["Shifts"]);
+    return [el("section", { class: "print-page" },
+      printHeader("VOLUNTEERS A–Z · " + dayNames.toUpperCase()),
+      people.length ? el("table", { class: "by-person" },
+        el("thead", {}, el("tr", {}, head.map((h) => el("th", {}, h)))),
+        el("tbody", {}, people.map((p) => el("tr", {},
+          el("td", { class: "check" }, "☐"),
+          el("td", { class: "nowrap" }, p.last + ", " + p.first),
+          opts.phones ? el("td", { class: "nowrap" }, p.phone) : "",
+          el("td", {}, p.shifts
+            .sort((a, b) => dayOrder.indexOf(state.shiftById[a].role.day) - dayOrder.indexOf(state.shiftById[b].role.day) ||
+              state.shiftById[a].shift.start.localeCompare(state.shiftById[b].shift.start))
+            .map((id, i) => {
+              const { shift, role } = state.shiftById[id];
+              return [i ? el("br") : "", state.config.days.find((d) => d.id === role.day).label.slice(0, 3) + " " +
+                fmtRange(shift) + " — " + role.name + " (" + role.location + ")"];
+            })))))) : el("p", {}, "No volunteers signed up for these days yet."),
+      printFooter())];
   }
 
   function downloadCsv() {
@@ -340,7 +419,8 @@
     });
     $("#btn-refresh").addEventListener("click", reload);
     $("#btn-csv").addEventListener("click", downloadCsv);
-    $("#btn-print").addEventListener("click", () => window.print());
+    $("#btn-print").addEventListener("click", openPrint);
+    $("#print-form").addEventListener("submit", submitPrint);
     $("#btn-logout").addEventListener("click", () => {
       try { sessionStorage.removeItem(CODE_KEY); } catch (e) { /* ignore */ }
       location.reload();

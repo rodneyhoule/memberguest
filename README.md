@@ -65,7 +65,8 @@ Sign in with the shared admin passcode. On the admin page you can:
 - **Move** someone to any shift with an open spot.
 - **Remove** someone from a shift.
 - **+ Add** a volunteer who called or emailed instead of using the site.
-- **Download CSV** or **Print roster** (one page per day, laid out like the old printed list).
+- **Download CSV**.
+- **Print schedule:** pick the days and a layout, either by shift (one landscape page per day, like the old printed list) or by volunteer A–Z with a check-in box. Uncheck phone numbers for a copy to post publicly. Use "Save as PDF" in the print window to email it.
 
 Volunteers are **not** notified when an admin moves or removes them, so call or text them.
 

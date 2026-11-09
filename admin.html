@@ -40,7 +40,7 @@
         <span class="admin-actions">
           <button type="button" class="btn" id="btn-refresh">Refresh</button>
           <button type="button" class="btn" id="btn-csv">Download CSV</button>
-          <button type="button" class="btn" id="btn-print">Print roster</button>
+          <button type="button" class="btn" id="btn-print">Print schedule</button>
           <button type="button" class="link" id="btn-logout">Sign out</button>
         </span>
       </div>
@@ -65,6 +65,34 @@
       <div class="dialog-buttons">
         <button type="button" class="btn" data-close>Cancel</button>
         <button type="submit" class="btn primary" id="move-submit">Move</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Print dialog -->
+  <dialog id="print-dialog">
+    <form method="dialog" id="print-form">
+      <h2>Print schedule</h2>
+      <fieldset class="choices">
+        <legend>Days</legend>
+        <div id="print-days"></div>
+      </fieldset>
+      <fieldset class="choices">
+        <legend>Layout</legend>
+        <label class="choice"><input type="radio" name="layout" value="shift" checked>
+          <span>By shift, like last year's sheet (one page per day)</span></label>
+        <label class="choice"><input type="radio" name="layout" value="person">
+          <span>By volunteer, A–Z (for check-in)</span></label>
+      </fieldset>
+      <fieldset class="choices">
+        <legend>Include</legend>
+        <label class="choice"><input type="checkbox" name="phones" checked>
+          <span>Volunteer phone numbers (uncheck for a copy to post publicly)</span></label>
+      </fieldset>
+      <p class="error" id="print-error" role="alert" hidden></p>
+      <div class="dialog-buttons">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn primary">Print</button>
       </div>
     </form>
   </dialog>
