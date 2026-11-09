@@ -17,11 +17,11 @@
   "roles": [
     { "id": "thu-registration", "day": "thu", "name": "Registration Table",
       "shifts": [ { "id": "thu-registration-1", "start": "08:45", "end": "10:30", "slots": 4 } ] },
-    { "id": "thu-putting", "day": "thu", "name": "Putting Contest", "location": "Putting Green",
+    { "id": "thu-putting", "day": "thu", "name": "Putting Contest",
       "shifts": [
         { "id": "thu-putting-1", "start": "10:15", "end": "12:45", "slots": 2 },
         { "id": "thu-putting-2", "start": "12:45", "end": "15:15", "slots": 2 } ] },
-    { "id": "thu-parimutuel", "day": "thu", "name": "Pari-Mutuel Betting Table", "location": "Clubhouse Lobby",
+    { "id": "thu-parimutuel", "day": "thu", "name": "Pari-Mutuel Betting Table",
       "shifts": [ { "id": "thu-parimutuel-1", "start": "16:45", "end": "19:00", "slots": 4 } ] },
 
     { "id": "fri-parimutuel", "day": "fri", "name": "Pari-Mutuel Betting Table",
@@ -91,7 +91,7 @@
       "shifts": [
         { "id": "sat-sp15-1", "start": "08:45", "end": "11:30", "slots": 3 },
         { "id": "sat-sp15-2", "start": "11:45", "end": "14:30", "slots": 3 } ] },
-    { "id": "sat-parimutuel", "day": "sat", "name": "Pari-Mutuel Betting Table", "location": "Near 9th Green",
+    { "id": "sat-parimutuel", "day": "sat", "name": "Pari-Mutuel Betting Table",
       "shifts": [ { "id": "sat-parimutuel-1", "start": "15:00", "end": "16:00", "slots": 4 } ] }
   ]
 }

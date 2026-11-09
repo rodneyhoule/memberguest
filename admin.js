@@ -385,13 +385,13 @@
 
   function downloadCsv() {
     const esc = (v) => '"' + String(v).replace(/"/g, '""') + '"';
-    const lines = [["Day", "Role", "Location", "Shift Time", "First Name", "Last Name", "Phone", "Email"].map(esc).join(",")];
+    const lines = [["Day", "Role", "Shift Time", "First Name", "Last Name", "Phone", "Email"].map(esc).join(",")];
     rosterRows().forEach((r) => {
       const people = r.people.length ? r.people : [];
-      people.forEach((p) => lines.push([dayLabel(r.day.id), r.role.name, r.role.location || "", fmtRange(r.shift),
+      people.forEach((p) => lines.push([dayLabel(r.day.id), r.role.name, fmtRange(r.shift),
         p.firstName, p.lastName, p.phone, p.email].map(esc).join(",")));
       for (let i = people.length; i < r.shift.slots; i++) {
-        lines.push([dayLabel(r.day.id), r.role.name, r.role.location || "", fmtRange(r.shift), "OPEN", "", "", ""].map(esc).join(","));
+        lines.push([dayLabel(r.day.id), r.role.name, fmtRange(r.shift), "OPEN", "", "", ""].map(esc).join(","));
       }
     });
     const blob = new Blob([lines.join("\r\n")], { type: "text/csv" });
