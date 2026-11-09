@@ -397,7 +397,8 @@
     $("#contacts").replaceChildren(...(contacts.length ? [
       el("h2", {}, "Questions?"),
       ...contacts.map((p) => el("p", {}, el("strong", {}, p.role + ": "), p.name,
-        p.phone ? el("span", {}, " · ", el("a", { href: "tel:" + p.phone.replace(/[^\d+]/g, "") }, p.phone)) : ""))
+        p.phone ? el("span", {}, " · ", el("a", { href: "tel:" + p.phone.replace(/[^\d+]/g, "") }, p.phone)) : "",
+        p.email ? el("span", {}, " · ", el("a", { href: "mailto:" + p.email }, p.email)) : ""))
     ] : []));
   }
 
