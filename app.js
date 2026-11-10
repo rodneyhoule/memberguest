@@ -86,12 +86,13 @@
           const email = p.email.trim().toLowerCase();
           const existing = rows.find((r) => r.email === email);
           const token = existing ? existing.token : newToken();
-          const added = [], full = [], already = [];
-          p.shiftIds.forEach((id) => {
+          const added = [], full = [], already = [], overlap = [];
+          [...new Set(p.shiftIds)].sort().forEach((id) => {
             const info = state.shiftById[id];
             if (!info || info.role.adminOnly) return;
             const taken = active.filter((r) => r.shiftId === id);
             if (taken.some((r) => r.email === email)) already.push(id);
+            else if (active.some((r) => r.email === email && clash(r.shiftId, id))) overlap.push(id);
             else if (taken.length >= info.shift.slots) full.push(id);
             else {
               const row = { shiftId: id, firstName: p.firstName, lastName: p.lastName, email, phone: p.phone, token, status: "Active" };
@@ -99,7 +100,7 @@
             }
           });
           save(rows);
-          return { ok: true, token, added, full, already };
+          return { ok: true, token, added, full, already, overlap };
         }
         if (p.action === "mine") {
           const own = active.filter((r) => r.token === p.token);
@@ -169,21 +170,20 @@
     try { localStorage.setItem("mmg-mine", JSON.stringify([...state.mine])); } catch (e) { /* ignore */ }
   }
 
-  // Overlapping pairs among the given shifts (same day, times intersect).
-  function overlaps(ids) {
-    const list = ids.map((id) => state.shiftById[id]);
-    const out = [];
-    for (let i = 0; i < list.length; i++) {
-      for (let j = i + 1; j < list.length; j++) {
-        const a = list[i], b = list[j];
-        if (a.role.day === b.role.day &&
-            toMin(a.shift.start) < toMin(b.shift.end) && toMin(b.shift.start) < toMin(a.shift.end)) {
-          out.push([a, b]);
-        }
-      }
-    }
-    return out;
+  // True when two different shifts are on the same day and their times intersect.
+  // Back-to-back shifts (one ends when the next starts) don't count.
+  function clash(idA, idB) {
+    const a = state.shiftById[idA], b = state.shiftById[idB];
+    return !!a && !!b && idA !== idB && a.role.day === b.role.day &&
+      toMin(a.shift.start) < toMin(b.shift.end) && toMin(b.shift.start) < toMin(a.shift.end);
   }
+
+  // The picked or already-booked shift that a shift would overlap, if any.
+  function conflictFor(id) {
+    return [...state.mine, ...state.picked].find((other) => clash(other, id)) || null;
+  }
+
+  const shortShift = (id) => state.shiftById[id].role.name + " " + fmtRange(state.shiftById[id].shift);
 
   function shiftItem(id, extra) {
     const { shift, role } = state.shiftById[id];
@@ -228,9 +228,13 @@
             seats.unshift(el("span", { class: "seat mine" }, "✓ You"));
           }
           const picked = state.picked.has(shift.id);
+          const conflict = picked ? null : conflictFor(shift.id);
           if (!state.mine.has(shift.id)) {
             for (let i = 0; i < open; i++) {
-              if (i === 0) {
+              if (i === 0 && conflict) {
+                seats.push(el("span", { class: "seat conflict", title: "Overlaps " + shortShift(conflict) },
+                  "⚠ Time conflict"));
+              } else if (i === 0) {
                 seats.push(el("button", {
                   type: "button", class: "seat" + (picked ? " picked" : ""), "aria-pressed": String(picked),
                   onclick: () => togglePick(shift.id)
@@ -243,12 +247,17 @@
           return el("div", { class: "shift" },
             el("div", { class: "shift-time" }, fmtRange(shift),
               el("span", { class: "open-count" }, open === 0 ? "Full" : open + " of " + shift.slots + " open")),
-            el("div", { class: "seats" }, seats));
+            el("div", { class: "seats" }, seats),
+            conflict && open > 0 && !state.mine.has(shift.id)
+              ? el("p", { class: "conflict-note" }, "Overlaps your " +
+                  (state.mine.has(conflict) ? "" : "picked ") + shortShift(conflict) + " shift.")
+              : "");
         }))));
   }
 
   function togglePick(id) {
-    if (state.picked.has(id)) state.picked.delete(id); else state.picked.add(id);
+    if (state.picked.has(id)) state.picked.delete(id);
+    else if (!conflictFor(id)) state.picked.add(id);
     renderRoles();
     updateCart();
   }
@@ -265,14 +274,6 @@
     const ids = [...state.picked];
     $("#picked-list").replaceChildren(...ids.map((id) => shiftItem(id,
       el("button", { type: "button", class: "btn danger", onclick: () => { state.picked.delete(id); renderRoles(); state.picked.size ? openForm() : show("browse"); } }, "Remove"))));
-    const clashes = overlaps(ids);
-    const warn = $("#overlap-warning");
-    warn.hidden = clashes.length === 0;
-    warn.textContent = clashes.length
-      ? "Heads up: these shifts overlap — " + clashes.map(([a, b]) =>
-          a.role.name + " (" + fmtRange(a.shift) + ") and " + b.role.name + " (" + fmtRange(b.shift) + ")").join("; ") +
-        ". That's fine if it's a hand-off, otherwise remove one."
-      : "";
     $("#form-error").hidden = true;
     show("form");
   }
@@ -315,15 +316,21 @@
 
   function showDone(res) {
     const got = res.added.concat(res.already);
-    $("#done-title").textContent = got.length ? "You're signed up — thank you!" : "Those spots just filled up";
+    const overlap = res.overlap || [];
+    $("#done-title").textContent = got.length ? "You're signed up — thank you!" : "Those shifts weren't added";
     $("#done-list").replaceChildren(...got.map((id) => shiftItem(id)));
-    const full = $("#done-full");
-    full.hidden = res.full.length === 0;
-    full.textContent = res.full.length
-      ? "Sorry — someone took the last spot before you on: " +
-        res.full.map((id) => state.shiftById[id].role.name + " " + fmtRange(state.shiftById[id].shift)).join("; ") +
-        ". Please pick another shift."
-      : "";
+    const notes = [];
+    if (res.full.length) {
+      notes.push("Sorry — someone took the last spot before you on: " + res.full.map(shortShift).join("; ") +
+        ". Please pick another shift.");
+    }
+    if (overlap.length) {
+      notes.push("Not added because it overlaps a shift you already have: " + overlap.map(shortShift).join("; ") +
+        ". To switch, cancel the other shift first.");
+    }
+    const box = $("#done-full");
+    box.hidden = notes.length === 0;
+    box.replaceChildren(...notes.map((n) => el("p", {}, n)));
     const url = manageUrl(res.token);
     const a = $("#done-link");
     a.href = url; a.textContent = url;
@@ -343,6 +350,8 @@
       return;
     }
     $("#manage-title").textContent = res.firstName + "'s shifts";
+    // The server's list wins, in case an admin moved or removed a shift.
+    state.mine.clear();
     rememberMine(res.shiftIds);
     try { localStorage.setItem("mmg-token", token); } catch (e) { /* ignore */ }
     if (!res.shiftIds.length) { list.replaceChildren(el("li", {}, "You have no shifts right now.")); return; }

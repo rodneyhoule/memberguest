@@ -9,9 +9,30 @@
 create table if not exists public.shifts (
   id         text primary key,
   slots      int  not null check (slots > 0),
-  admin_only boolean not null default false   -- filled only from the admin page (e.g. Game Day Coordinator)
+  admin_only boolean not null default false,  -- filled only from the admin page (e.g. Game Day Coordinator)
+  day        text,                            -- thu / fri / sat, for overlap checks
+  start_time time,
+  end_time   time
 );
 alter table public.shifts add column if not exists admin_only boolean not null default false;
+alter table public.shifts add column if not exists day text;
+alter table public.shifts add column if not exists start_time time;
+alter table public.shifts add column if not exists end_time time;
+
+-- True when two shifts are on the same day and their times intersect.
+-- Back-to-back shifts (one ends at 11:30, the next starts at 11:30) don't overlap.
+create or replace function public.shifts_overlap_(a text, b text)
+returns boolean
+language sql stable set search_path = public
+as $$
+  select exists (
+    select 1 from shifts s1, shifts s2
+    where s1.id = a and s2.id = b and s1.id <> s2.id
+      and s1.day = s2.day
+      and s1.start_time < s2.end_time and s2.start_time < s1.end_time
+  );
+$$;
+revoke execute on function public.shifts_overlap_(text, text) from public, anon, authenticated;
 
 create table if not exists public.signups (
   id          bigint generated always as identity primary key,
@@ -72,6 +93,7 @@ declare
   v_added   text[] := '{}';
   v_full    text[] := '{}';
   v_already text[] := '{}';
+  v_overlap text[] := '{}';
 begin
   if v_first = '' or v_last = '' then
     raise exception 'Please enter your first and last name.';
@@ -88,6 +110,9 @@ begin
   if p_shift_ids is null or cardinality(p_shift_ids) = 0 or cardinality(p_shift_ids) > 20 then
     raise exception 'Please pick at least one shift.';
   end if;
+
+  -- One sign-up at a time per email, so two devices can't book overlapping shifts at once.
+  perform pg_advisory_xact_lock(hashtext(v_email));
 
   -- One personal link per email address, reused on later sign-ups.
   select token into v_token from signups where email = v_email limit 1;
@@ -106,6 +131,12 @@ begin
       v_already := v_already || v_id;
       continue;
     end if;
+    -- Includes shifts added earlier in this same request.
+    if exists (select 1 from signups
+               where email = v_email and status = 'active' and shifts_overlap_(shift_id, v_id)) then
+      v_overlap := v_overlap || v_id;
+      continue;
+    end if;
     select count(*) into v_taken from signups where shift_id = v_id and status = 'active';
     if v_taken >= v_slots then
       v_full := v_full || v_id;
@@ -116,7 +147,8 @@ begin
     v_added := v_added || v_id;
   end loop;
 
-  return json_build_object('token', v_token, 'added', v_added, 'full', v_full, 'already', v_already);
+  return json_build_object('token', v_token, 'added', v_added, 'full', v_full,
+                           'already', v_already, 'overlap', v_overlap);
 end;
 $$;
 

@@ -126,6 +126,26 @@
   const openOn = (shiftId) => state.shiftById[shiftId].shift.slots - peopleOn(shiftId).length;
   const fullName = (s) => s.firstName + " " + s.lastName;
   const telHref = (phone) => "tel:" + phone.replace(/[^\d+]/g, "");
+  const toMin = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return h * 60 + m; };
+
+  // True when two different shifts are on the same day and their times intersect.
+  function clash(idA, idB) {
+    const a = state.shiftById[idA], b = state.shiftById[idB];
+    return !!a && !!b && idA !== idB && a.role.day === b.role.day &&
+      toMin(a.shift.start) < toMin(b.shift.end) && toMin(b.shift.start) < toMin(a.shift.end);
+  }
+
+  // This person's other sign-ups that overlap shiftId. Admins may still go ahead
+  // (e.g. a coordinator covering a hand-off), so this only drives warnings.
+  function overlapsFor(email, shiftId, exceptSignupId) {
+    const key = email.trim().toLowerCase();
+    return state.signups.filter((s) => s.email.toLowerCase() === key && s.id !== exceptSignupId && clash(s.shiftId, shiftId));
+  }
+
+  function confirmOverlap(name, list) {
+    return !list.length || confirm(name + " is already on " + list.map((s) => shiftLabel(s.shiftId)).join("; ") +
+      ", which overlaps this shift.\n\nDo it anyway?");
+  }
 
   function showError(sel, msg) {
     const n = $(sel);
@@ -190,7 +210,9 @@
                   el("strong", {}, fullName(p)),
                   el("span", { class: "small" },
                     el("a", { href: telHref(p.phone) }, p.phone), " · ",
-                    el("a", { href: "mailto:" + p.email }, p.email))),
+                    el("a", { href: "mailto:" + p.email }, p.email)),
+                  overlapsFor(p.email, p.shiftId, p.id).map((o) =>
+                    el("span", { class: "overlap-flag" }, "⚠ Overlaps their " + shiftLabel(o.shiftId)))),
                 el("div", { class: "person-actions" },
                   el("button", { type: "button", class: "btn small-btn", onclick: () => openMove(p) }, "Move"),
                   el("button", { type: "button", class: "btn danger small-btn", onclick: () => cancelPerson(p) }, "Remove")))),
@@ -219,7 +241,8 @@
     const groups = state.config.days.map((d) => {
       const options = state.config.roles.filter((r) => r.day === d.id).flatMap((role) =>
         role.shifts.filter((s) => s.id !== p.shiftId && openOn(s.id) > 0).map((s) =>
-          el("option", { value: s.id }, role.name + " · " + fmtRange(s) + " (" + openOn(s.id) + " open)")));
+          el("option", { value: s.id }, role.name + " · " + fmtRange(s) + " (" + openOn(s.id) + " open)" +
+            (overlapsFor(p.email, s.id, p.id).length ? " ⚠ overlaps their other shift" : ""))));
       return options.length ? el("optgroup", { label: dayLabel(d.id) }, options) : null;
     }).filter(Boolean);
     select.replaceChildren(el("option", { value: "" }, "Choose a shift with an open spot…"), ...groups);
@@ -231,6 +254,7 @@
     e.preventDefault();
     const shiftId = $("#move-select").value;
     if (!shiftId) { showError("#move-error", "Choose a shift."); return; }
+    if (!confirmOverlap(fullName(moving), overlapsFor(moving.email, shiftId, moving.id))) return;
     const btn = $("#move-submit");
     btn.disabled = true;
     const res = await api.move(moving.id, shiftId);
@@ -265,6 +289,7 @@
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email) ? "Enter a valid email address." :
       p.phone.replace(/\D/g, "").length < 10 ? "Enter a 10-digit phone number." : "";
     if (problem) { showError("#add-error", problem); return; }
+    if (!confirmOverlap(p.firstName + " " + p.lastName, overlapsFor(p.email, p.shiftId))) return;
     const btn = $("#add-submit");
     btn.disabled = true;
     const res = await api.add(p);
