@@ -409,7 +409,13 @@
   }
 
   function downloadCsv() {
-    const esc = (v) => '"' + String(v).replace(/"/g, '""') + '"';
+    // A leading = + - @ (or tab / return) makes Excel and Sheets treat a cell as a formula.
+    // Volunteers type their own names, so prefix those cells with ' to keep them as plain text.
+    const esc = (v) => {
+      let s = String(v);
+      if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+      return '"' + s.replace(/"/g, '""') + '"';
+    };
     const lines = [["Day", "Role", "Shift Time", "First Name", "Last Name", "Phone", "Email"].map(esc).join(",")];
     rosterRows().forEach((r) => {
       const people = r.people.length ? r.people : [];
