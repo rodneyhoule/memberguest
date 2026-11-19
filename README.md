@@ -80,7 +80,11 @@ cancelled rows. `changed_by` shows whether the volunteer or an admin made the la
 
 1. Edit `shifts.json` (times, spots, new roles). Don't rename a shift `id` once people have signed up for it.
    Add `"adminOnly": true` to a role to hide it from the public page so only admins can fill it (used for Game Day Coordinator).
-2. Run `python3 scripts/make_seed.py > supabase/seed.sql`, then run `seed.sql` in the Supabase SQL Editor.
+2. Run `python3 scripts/make_seed.py > supabase/seed.sql`, then load it into the database, either by pasting
+   `seed.sql` into the Supabase SQL Editor or with the Supabase CLI (`brew install supabase/tap/supabase`, then `supabase login` once):
+   ```bash
+   supabase db query --remote=yysimcnvkkfvgtnvhgwa --yes -f supabase/seed.sql
+   ```
 3. Commit and push.
 
 ## Privacy
