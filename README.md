@@ -13,7 +13,8 @@ Live site: https://rodneyhoule.github.io/memberguest/
 |---|---|
 | `shifts.json` | **Edit this each year.** Event dates, days, roles, shift times, number of spots, disclaimer wording, contacts. |
 | `config.js` | Supabase project URL and public key. Leave empty for demo mode. |
-| `index.html`, `styles.css`, `app.js` | The sign-up page. |
+| `index.html`, `styles.css`, `app.js` | The sign-up page. After changing a `.css` or `.js` file, bump the `?v=` date on its link in `index.html` and `admin.html` so browsers fetch the new copy. |
+| `theme.js` | The light/dark switch in the header of both pages. |
 | `admin.html`, `admin.js` | The admin page (passcode protected). |
 | `supabase/schema.sql` | Database tables and functions. Run once in Supabase. |
 | `supabase/seed.sql` | The shift list for the database, generated from `shifts.json`. |
